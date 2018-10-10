@@ -12,8 +12,10 @@ import MobileDialog from "../MobileDialog";
 import LayoutWrapper from "../LayoutWrapper";
 
 import {
+  MobileStoreButton,
   MobileTriggerButton,
-  MobileStoreButton
+  MobileTriggerIOSButton,
+  MobileTriggerAndroidButton
 } from "../../containers/ExperimentPage/ExperimentButtons";
 
 import type { InstalledExperiments } from "../../reducers/addon";
@@ -133,11 +135,14 @@ export default class FeaturedButton extends Component<FeaturedButtonProps, Featu
     });
   }
 
-  doShowMobileAppDialog = (evt: MouseEvent) => {
+  doShowMobileAppDialog = (evt: MouseEvent, platform) => {
     evt.preventDefault();
     const { experiment }  = this.props;
 
-    this.setState({ showMobileDialog: true });
+    this.setState({
+      showMobileDialog: true,
+      isIOSDialog: (platform === "ios")
+    });
     this.props.sendToGA("event", {
       eventCategory: "Featured Experiment",
       eventAction: "mobile send click",
@@ -157,6 +162,18 @@ export default class FeaturedButton extends Component<FeaturedButtonProps, Featu
 
     const mobileControls = () => {
       if (!isMobile(userAgent)) {
+        if (platforms.includes("ios") && platforms.includes("android")) {
+          return (
+            <React.Fragment>
+              <div className="main-install__spacer"></div>
+              <div className="mobile-button-wrap">
+                <MobileTriggerIOSButton doShowMobileAppDialog={this.doShowMobileAppDialog} color={"primary"} />
+                <MobileTriggerAndroidButton doShowMobileAppDialog={this.doShowMobileAppDialog} color={"primary"} />
+              </div>
+              { this.renderLegalLink() }
+            </React.Fragment>
+          );
+        }
         return (
           <React.Fragment>
             <div className="main-install__spacer"></div>
@@ -165,6 +182,7 @@ export default class FeaturedButton extends Component<FeaturedButtonProps, Featu
           </React.Fragment>
         );
       }
+
       return (
         <React.Fragment>
           {platforms.includes("ios") && <MobileStoreButton {...{ url: ios_url, platform: "ios", slug, category, sendToGA }} />}
